@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { MacroBar } from "@/components/MacroBar";
 import { Button } from "@/components/ui/button";
 import { MEALS, MEAL_LABEL, type MealPlan } from "@/lib/mess-types";
+import ProtectedRoute from "@/auth/ProtectedRoute";
 import {
   computeTargets,
   formatServings,
@@ -60,12 +61,15 @@ function Home() {
 
   const dayTotals = useMemo(() => {
     if (!plan) return { calories: 0, protein: 0, carbs: 0, fat: 0 };
-    return MEALS.map((m) => totalsFor(plan[m] ?? [], menu.items)).reduce((a, b) => ({
-      calories: a.calories + b.calories,
-      protein: a.protein + b.protein,
-      carbs: a.carbs + b.carbs,
-      fat: a.fat + b.fat,
-    }));
+    return MEALS.map((m) => totalsFor(plan[m] ?? [], menu.items)).reduce(
+      (a, b) => ({
+        calories: a.calories + b.calories,
+        protein: a.protein + b.protein,
+        carbs: a.carbs + b.carbs,
+        fat: a.fat + b.fat,
+      }),
+      { calories: 0, protein: 0, carbs: 0, fat: 0 },
+    );
   }, [plan, menu.items]);
 
   if (!ready) return <div className="py-20 text-center text-muted-foreground">Loading…</div>;
@@ -85,113 +89,115 @@ function Home() {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="card-soft overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border bg-secondary/50 px-6 py-5">
-          <div>
-            <p className="text-xs uppercase tracking-widest text-muted-foreground">
-              {new Date().toDateString()}
-            </p>
-            <h1 className="mt-1 text-2xl font-bold">Hey {profile.name.split(" ")[0]} 👋</h1>
-            <p className="text-sm text-muted-foreground">
-              Today's target: {targets.calories} kcal · {targets.protein}g protein
-            </p>
+    <ProtectedRoute>
+      <div className="space-y-6">
+        <section className="card-soft overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border bg-secondary/50 px-6 py-5">
+            <div>
+              <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                {new Date().toDateString()}
+              </p>
+              <h1 className="mt-1 text-2xl font-bold">Hey {profile.name.split(" ")[0]} 👋</h1>
+              <p className="text-sm text-muted-foreground">
+                Today's target: {targets.calories} kcal · {targets.protein}g protein
+              </p>
+            </div>
+            <Button size="lg" onClick={handleGenerate} disabled={generating}>
+              {generating ? "Optimizing…" : plan ? "Regenerate plan" : "Generate my meal plan"}
+            </Button>
           </div>
-          <Button size="lg" onClick={handleGenerate} disabled={generating}>
-            {generating ? "Optimizing…" : plan ? "Regenerate plan" : "Generate my meal plan"}
-          </Button>
-        </div>
-        <div className="grid gap-4 px-6 py-5 sm:grid-cols-2 lg:grid-cols-4">
-          <MacroBar label="Calories" value={dayTotals.calories} goal={targets.calories} unit=" kcal" />
-          <MacroBar label="Protein" value={dayTotals.protein} goal={targets.protein} tone="protein" />
-          <MacroBar label="Carbs" value={dayTotals.carbs} goal={targets.carbs} tone="carbs" />
-          <MacroBar label="Fat" value={dayTotals.fat} goal={targets.fat} tone="fat" />
-        </div>
-      </section>
+          <div className="grid gap-4 px-6 py-5 sm:grid-cols-2 lg:grid-cols-4">
+            <MacroBar label="Calories" value={dayTotals.calories} goal={targets.calories} unit=" kcal" />
+            <MacroBar label="Protein" value={dayTotals.protein} goal={targets.protein} tone="protein" />
+            <MacroBar label="Carbs" value={dayTotals.carbs} goal={targets.carbs} tone="carbs" />
+            <MacroBar label="Fat" value={dayTotals.fat} goal={targets.fat} tone="fat" />
+          </div>
+        </section>
 
-      {!plan ? (
-        <p className="rounded-xl border border-dashed border-border p-8 text-center text-muted-foreground">
-          No plan yet — hit <strong className="text-foreground">Generate my meal plan</strong> to
-          build today's meals from the mess menu.
-        </p>
-      ) : (
-        <div className="grid gap-5 lg:grid-cols-3">
-          {MEALS.map((meal) => {
-            const entries = plan[meal] ?? [];
-            const t = totalsFor(entries, menu.items);
-            const goal = mealTargets(targets, meal);
-            const skipped = menu.items.filter(
-              (i) => i.meal === meal && !entries.some((e) => e.itemId === i.id),
-            );
-            return (
-              <section key={meal} className="card-soft flex flex-col p-5">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">{MEAL_LABEL[meal]}</h2>
-                  <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
-                    {Math.round(t.calories)} kcal · {Math.round(t.protein)}g P
-                  </span>
-                </div>
+        {!plan ? (
+          <p className="rounded-xl border border-dashed border-border p-8 text-center text-muted-foreground">
+            No plan yet — hit <strong className="text-foreground">Generate my meal plan</strong> to
+            build today's meals from the mess menu.
+          </p>
+        ) : (
+          <div className="grid gap-5 lg:grid-cols-3">
+            {MEALS.map((meal) => {
+              const entries = plan[meal] ?? [];
+              const t = totalsFor(entries, menu.items);
+              const goal = mealTargets(targets, meal);
+              const skipped = menu.items.filter(
+                (i) => i.meal === meal && !entries.some((e) => e.itemId === i.id),
+              );
+              return (
+                <section key={meal} className="card-soft flex flex-col p-5">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">{MEAL_LABEL[meal]}</h2>
+                    <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
+                      {Math.round(t.calories)} kcal · {Math.round(t.protein)}g P
+                    </span>
+                  </div>
 
-                {entries.length === 0 ? (
-                  <p className="mt-4 text-sm text-muted-foreground">
-                    Nothing on the menu for this meal.
-                  </p>
-                ) : (
-                  <ul className="mt-4 space-y-2">
-                    {entries.map((e) => {
-                      const item = menu.items.find((i) => i.id === e.itemId)!;
-                      const done = eaten.includes(item.id);
-                      return (
-                        <li key={e.itemId}>
-                          <button
-                            onClick={() =>
-                              updateLog({
-                                eaten: done
-                                  ? eaten.filter((x) => x !== item.id)
-                                  : [...eaten, item.id],
-                              })
-                            }
-                            className={`flex w-full items-center gap-3 rounded-lg border border-border px-3 py-2 text-left text-sm transition-colors hover:bg-secondary/70 ${
-                              done ? "bg-secondary" : ""
-                            }`}
-                          >
-                            <span
-                              className={`flex size-5 shrink-0 items-center justify-center rounded-md border text-[11px] ${
-                                done
-                                  ? "border-primary bg-primary text-primary-foreground"
-                                  : "border-border"
+                  {entries.length === 0 ? (
+                    <p className="mt-4 text-sm text-muted-foreground">
+                      Nothing on the menu for this meal.
+                    </p>
+                  ) : (
+                    <ul className="mt-4 space-y-2">
+                      {entries.map((e) => {
+                        const item = menu.items.find((i) => i.id === e.itemId)!;
+                        const done = eaten.includes(item.id);
+                        return (
+                          <li key={e.itemId}>
+                            <button
+                              onClick={() =>
+                                updateLog({
+                                  eaten: done
+                                    ? eaten.filter((x) => x !== item.id)
+                                    : [...eaten, item.id],
+                                })
+                              }
+                              className={`flex w-full items-center gap-3 rounded-lg border border-border px-3 py-2 text-left text-sm transition-colors hover:bg-secondary/70 ${
+                                done ? "bg-secondary" : ""
                               }`}
                             >
-                              {done ? "✓" : ""}
-                            </span>
-                            <span className="flex-1">
-                              <span className="font-medium">{item.name}</span>{" "}
-                              <span className="text-muted-foreground">
-                                — {formatServings(e.servings, item.serving)}
+                              <span
+                                className={`flex size-5 shrink-0 items-center justify-center rounded-md border text-[11px] ${
+                                  done
+                                    ? "border-primary bg-primary text-primary-foreground"
+                                    : "border-border"
+                                }`}
+                              >
+                                {done ? "✓" : ""}
                               </span>
-                            </span>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
+                              <span className="flex-1">
+                                <span className="font-medium">{item.name}</span>{" "}
+                                <span className="text-muted-foreground">
+                                  — {formatServings(e.servings, item.serving)}
+                                </span>
+                              </span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
 
-                {skipped.length > 0 && (
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    Skip today: {skipped.map((s) => s.name).join(", ")}
-                  </p>
-                )}
+                  {skipped.length > 0 && (
+                    <p className="mt-3 text-xs text-muted-foreground">
+                      Skip today: {skipped.map((s) => s.name).join(", ")}
+                    </p>
+                  )}
 
-                <div className="mt-4 space-y-2 border-t border-border pt-4">
-                  <MacroBar label="Calories" value={t.calories} goal={goal.calories} unit=" kcal" />
-                  <MacroBar label="Protein" value={t.protein} goal={goal.protein} tone="protein" />
-                </div>
-              </section>
-            );
-          })}
-        </div>
-      )}
-    </div>
+                  <div className="mt-4 space-y-2 border-t border-border pt-4">
+                    <MacroBar label="Calories" value={t.calories} goal={goal.calories} unit=" kcal" />
+                    <MacroBar label="Protein" value={t.protein} goal={goal.protein} tone="protein" />
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </ProtectedRoute>
   );
 }

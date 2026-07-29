@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AuthProvider } from "@/auth/AuthProvider";
 import {
   Outlet,
   Link,
@@ -154,7 +155,9 @@ function RootComponent() {
         </header>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <main className="mx-auto max-w-5xl px-4 pb-20 pt-6">
-          <Outlet />
+          <AuthProvider>
+            <Outlet />
+          </AuthProvider>
         </main>
       </div>
     </QueryClientProvider>
