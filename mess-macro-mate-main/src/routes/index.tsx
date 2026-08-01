@@ -6,7 +6,7 @@ import { MEALS, MEAL_LABEL, type MealPlan } from "@/lib/mess-types";
 import ProtectedRoute from "@/auth/ProtectedRoute";
 import {
   computeTargets,
-  formatServings,
+  formatServings, 
   generatePlan,
   mealTargets,
   totalsFor,
