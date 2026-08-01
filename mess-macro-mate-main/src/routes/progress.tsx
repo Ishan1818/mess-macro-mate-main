@@ -5,7 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MEALS } from "@/lib/mess-types";
 import { computeTargets, totalsFor } from "@/lib/nutrition";
-import { todayKey, useLog, useMenu, useProfile } from "@/lib/store";
+import { todayKey, useLog } from "@/lib/store";
+import { useAuthContext } from "@/auth/AuthProvider";
+import { getProfile } from "@/lib/api/profile";
+import { getTodayMenu } from "@/lib/api/menu";
+import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/progress")({
   head: () => ({
@@ -29,9 +33,39 @@ export const Route = createFileRoute("/progress")({
 const WATER_GOAL = 8;
 
 function ProgressPage() {
-  const { value: profile } = useProfile();
-  const { value: menu } = useMenu();
-  const { value: logs, save } = useLog();
+const { session } = useAuthContext();
+
+const profileQuery = useQuery({
+  queryKey: ["profile", session?.user.id],
+  enabled: !!session,
+  queryFn: () => getProfile(session!.user.id),
+});
+
+const menuQuery = useQuery({
+  queryKey: ["today-menu"],
+  queryFn: getTodayMenu,
+});
+
+const profile = profileQuery.data;
+const menu = menuQuery.data;
+
+const { value: logs, save } = useLog();
+
+  if (profileQuery.isLoading || menuQuery.isLoading) {
+  return <div className="p-10 text-center">Loading...</div>;
+}
+
+if (profileQuery.error) {
+  return <div className="p-10 text-center text-red-500">Failed to load profile.</div>;
+}
+
+if (menuQuery.error) {
+  return <div className="p-10 text-center text-red-500">Failed to load menu.</div>;
+}
+
+if (!profile || !menu) {
+  return <div className="p-10 text-center">Loading...</div>;
+}
 
   const date = todayKey();
   const log = logs[date];

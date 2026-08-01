@@ -31,16 +31,16 @@ function toDb(profile: Profile) {
   };
 }
 
-export async function getProfile(userId: string) {
+export async function getProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", userId)
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
 
-  return fromDb(data);
+  return data ? fromDb(data) : null;
 }
 
 export async function saveProfile(userId: string, profile: Profile) {

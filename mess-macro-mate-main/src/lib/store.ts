@@ -72,17 +72,7 @@ export const SAMPLE_MENU: FoodItem[] = [
   { id: "d5", meal: "dinner", name: "Salad", serving: "1 bowl", calories: 40, protein: 2, carbs: 8, fat: 0.2, maxServings: 2 },
 ];
 
-export function useProfile() {
-  return useStored<Profile | null>(KEYS.profile, null);
-}
 
-export function useMenu() {
-  const store = useStored<DailyMenu>(KEYS.menu, {
-    date: todayKey(),
-    items: SAMPLE_MENU,
-  });
-  return store;
-}
 
 export function useLog() {
   return useStored<Record<string, DayLog>>(KEYS.log, {});

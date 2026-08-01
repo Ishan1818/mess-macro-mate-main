@@ -121,7 +121,7 @@ const navLinks = [
   { to: "/", label: "Plan" },
   { to: "/progress", label: "Progress" },
   { to: "/profile", label: "Profile" },
-  { to: "/admin", label: "Menu" },
+  { to: "/menu", label: "Menu" },
 ] as const;
 
 function RootComponent() {

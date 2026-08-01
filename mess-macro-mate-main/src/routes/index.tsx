@@ -11,7 +11,20 @@ import {
   mealTargets,
   totalsFor,
 } from "@/lib/nutrition";
-import { todayKey, useLog, useMenu, useProfile } from "@/lib/store";
+import { todayKey } from "@/lib/store";
+import {
+  getDailyLog,
+  saveDailyLog,
+  type DailyLog,
+} from "@/lib/api/logs";
+import { useAuthContext } from "@/auth/AuthProvider";
+import { getProfile } from "@/lib/api/profile";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { getTodayMenu } from "@/lib/api/menu";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -33,26 +46,62 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
-  const { value: profile, ready } = useProfile();
-  const { value: menu } = useMenu();
-  const { value: logs, save: saveLogs } = useLog();
-  const [generating, setGenerating] = useState(false);
+const { session } = useAuthContext();
 
-  const date = todayKey();
-  const log = logs[date];
-  const plan = log?.plan;
-  const eaten = log?.eaten ?? [];
+const profileQuery = useQuery({
+  queryKey: ["profile", session?.user.id],
+  enabled: !!session,
+  queryFn: () => getProfile(session!.user.id),
+});
+
+const menuQuery = useQuery({
+  queryKey: ["today-menu"],
+  queryFn: getTodayMenu,
+});
+
+const profile = profileQuery.data;
+const menu = menuQuery.data;
+const queryClient = useQueryClient();
+const [generating, setGenerating] = useState(false);
+
+const date = todayKey();
+
+const logQuery = useQuery({
+  queryKey: ["daily-log", session?.user.id, date],
+  enabled: !!session,
+  queryFn: () => getDailyLog(session!.user.id, date),
+});
+
+const saveMutation = useMutation({
+  mutationFn: (log: DailyLog) =>
+    saveDailyLog(session!.user.id, log),
+  onSuccess: async () => {
+    await queryClient.invalidateQueries({
+      queryKey: ["daily-log", session?.user.id, date],
+    });
+  },
+});
+
+const log = logQuery.data;
+
+const plan = log?.plan ?? null;
+
+const eaten = log?.eaten ?? [];
 
   const targets = useMemo(() => (profile ? computeTargets(profile) : null), [profile]);
 
-  const updateLog = (patch: Partial<NonNullable<typeof log>>) =>
-    saveLogs({
-      ...logs,
-      [date]: { ...log, ...patch, date, water: patch.water ?? log?.water ?? 0 },
-    });
+    const updateLog = (patch: Partial<DailyLog>) => {
+  saveMutation.mutate({
+    log_date: date,
+    plan: patch.plan ?? log?.plan ?? null,
+    eaten: patch.eaten ?? log?.eaten ?? [],
+    water: patch.water ?? log?.water ?? 0,
+    weight_kg: patch.weight_kg ?? log?.weight_kg ?? null,
+  });
+};
 
   const handleGenerate = () => {
-    if (!targets) return;
+    if (!targets || !menu) return;
     setGenerating(true);
     const next: MealPlan = generatePlan(menu.items, targets);
     updateLog({ plan: next, eaten: [] });
@@ -60,19 +109,71 @@ function Home() {
   };
 
   const dayTotals = useMemo(() => {
-    if (!plan) return { calories: 0, protein: 0, carbs: 0, fat: 0 };
-    return MEALS.map((m) => totalsFor(plan[m] ?? [], menu.items)).reduce(
-      (a, b) => ({
-        calories: a.calories + b.calories,
-        protein: a.protein + b.protein,
-        carbs: a.carbs + b.carbs,
-        fat: a.fat + b.fat,
-      }),
-      { calories: 0, protein: 0, carbs: 0, fat: 0 },
-    );
-  }, [plan, menu.items]);
+  if (!menu || !plan) {
+    return {
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+    };
+  }
 
-  if (!ready) return <div className="py-20 text-center text-muted-foreground">Loading…</div>;
+  return MEALS.map((m) => totalsFor(plan[m] ?? [], menu.items)).reduce(
+    (a, b) => ({
+      calories: a.calories + b.calories,
+      protein: a.protein + b.protein,
+      carbs: a.carbs + b.carbs,
+      fat: a.fat + b.fat,
+    }),
+    { calories: 0, protein: 0, carbs: 0, fat: 0 },
+  );
+}, [plan, menu]);
+
+  
+
+  if (
+  profileQuery.isLoading ||
+  menuQuery.isLoading ||
+  logQuery.isLoading
+) {
+  return (
+    <div className="py-20 text-center text-muted-foreground">
+      Loading...
+    </div>
+  );
+}
+
+if (profileQuery.error) {
+  return (
+    <div className="py-20 text-center text-red-500">
+      Failed to load profile.
+    </div>
+  );
+}
+
+if (menuQuery.error) {
+  return (
+    <div className="py-20 text-center text-red-500">
+      Failed to load today's menu.
+    </div>
+  );
+}
+
+if (logQuery.error) {
+  return (
+    <div className="py-20 text-center text-red-500">
+      Failed to load today's log.
+    </div>
+  );
+}
+
+if (!profile || !menu) {
+  return (
+    <div className="py-20 text-center text-muted-foreground">
+      Loading...
+    </div>
+  );
+}
 
   if (!profile || !targets) {
     return (
