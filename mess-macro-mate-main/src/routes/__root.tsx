@@ -142,7 +142,7 @@ function RootComponent() {
               {navLinks.map((l) => (
                 <Link
                   key={l.to}
-                  to={l.to}
+                  to={l.to as any}
                   className="rounded-lg px-3 py-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                   activeProps={{ className: "bg-secondary text-foreground font-medium" }}
                   activeOptions={{ exact: l.to === "/" }}

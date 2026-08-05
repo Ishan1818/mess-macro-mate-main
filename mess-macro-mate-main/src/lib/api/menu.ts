@@ -26,7 +26,10 @@ export async function getTodayMenu(): Promise<DailyMenu> {
 
   if (error) throw error;
 
-  const items: FoodItem[] = (data ?? []).map((row: any) => ({
+ const unique = new Map<string, FoodItem>();
+
+(data ?? []).forEach((row: any) => {
+  unique.set(String(row.food_items.id), {
     id: String(row.food_items.id),
     meal: row.meal,
     name: row.food_items.name,
@@ -36,32 +39,13 @@ export async function getTodayMenu(): Promise<DailyMenu> {
     carbs: Number(row.food_items.carbs),
     fat: Number(row.food_items.fat),
     maxServings: row.food_items.max_servings,
-  }));
+  });
+});
+
+const items = [...unique.values()];
 
   return {
     date: today,
     items,
   };
 }
-const today = new Date().toISOString().slice(0, 10);
-console.log("today =", today);
-
-const { data, error } = await supabase
-  .from("daily_menu")
-  .select(`
-    menu_date,
-    meal,
-    available,
-    food_items (
-      id,
-      name,
-      serving_size,
-      calories,
-      protein,
-      carbs,
-      fat,
-      max_servings
-    )
-  `)
-  .eq("menu_date", today)
-  .eq("available", true);

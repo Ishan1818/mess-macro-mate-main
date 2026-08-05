@@ -54,6 +54,9 @@ function MenuPage() {
         <h1 className="text-3xl font-bold">Today's Menu 🍽️</h1>
         <p className="text-muted-foreground">
           {new Date(menu.date).toDateString()}
+          <p className="text-sm text-muted-foreground">
+  {menu.items.length} items available today
+</p>
         </p>
       </div>
 
@@ -75,8 +78,7 @@ function MenuPage() {
                 {foods.map((food) => (
                   <div
                     key={food.id}
-                    className="rounded-xl border border-border p-4 transition hover:bg-secondary/40"
-                  >
+className="rounded-xl border border-border p-4 transition-all duration-200 hover:-translate-y-1 hover:bg-secondary/40"                  >
                     <h3 className="font-semibold text-lg">
                       {food.name}
                     </h3>

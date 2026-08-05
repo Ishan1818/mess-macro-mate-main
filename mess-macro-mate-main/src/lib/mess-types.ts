@@ -21,12 +21,18 @@ export interface FoodItem {
 }
 
 export interface DailyMenu {
-  date: string; // YYYY-MM-DD
+  date: string;
   items: FoodItem[];
 }
 
 export type Goal = "lose" | "maintain" | "gain";
-export type Activity = "sedentary" | "light" | "moderate" | "active" | "very_active";
+
+export type Activity =
+  | "sedentary"
+  | "light"
+  | "moderate"
+  | "active"
+  | "very_active";
 
 export interface Profile {
   name: string;
@@ -55,10 +61,20 @@ export interface PlanEntry {
 
 export type MealPlan = Record<MealName, PlanEntry[]>;
 
+/* ---------- NEW ---------- */
+
+export interface MealOption {
+  id: number;
+  score: number;
+  plan: MealPlan;
+}
+
+/* ------------------------- */
+
 export interface DayLog {
   date: string;
   water: number;
   weightKg?: number;
   plan?: MealPlan;
-  eaten?: string[]; // itemIds marked as eaten
+  eaten?: string[];
 }
