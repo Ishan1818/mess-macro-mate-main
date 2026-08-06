@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/auth/AuthProvider";
+import MobileNav from "@/components/MobileNav";
 import {
   Outlet,
   Link,
@@ -119,9 +120,8 @@ function RootShell({ children }: { children: ReactNode }) {
 
 const navLinks = [
   { to: "/", label: "Plan" },
-  { to: "/progress", label: "Progress" },
-  { to: "/profile", label: "Profile" },
   { to: "/menu", label: "Menu" },
+  { to: "/profile", label: "Profile" },
 ] as const;
 
 function RootComponent() {
@@ -130,7 +130,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <div className="min-h-screen bg-background">
-        <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur">
+        <header className="sticky top-0 z-30 hidden border-b border-border/70 bg-background/85 backdrop-blur md:block">
           <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
             <Link to="/" className="flex items-center gap-2">
               <span className="flex size-8 items-center justify-center rounded-lg bg-primary font-display text-sm font-bold text-primary-foreground">
@@ -154,10 +154,11 @@ function RootComponent() {
           </div>
         </header>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <main className="mx-auto max-w-5xl px-4 pb-20 pt-6">
+        <main className="mx-auto max-w-5xl px-4 pt-6 pb-32 md:pb-20">
           <AuthProvider>
-            <Outlet />
-          </AuthProvider>
+  <Outlet />
+  <MobileNav />
+</AuthProvider>
         </main>
       </div>
     </QueryClientProvider>
