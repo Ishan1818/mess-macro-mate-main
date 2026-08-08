@@ -124,6 +124,7 @@ const navLinks = [
   { to: "/", label: "Plan" },
   { to: "/menu", label: "Menu" },
   { to: "/profile", label: "Profile" },
+  { to: "/about", label: "About" },
 ] as const;
 
 function LogoutButton() {

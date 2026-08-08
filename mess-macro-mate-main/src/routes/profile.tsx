@@ -54,7 +54,7 @@ const DEFAULTS: Profile = {
 };
 
 function ProfilePage() {
-  const { session } = useAuthContext();
+  const { session, signOut } = useAuthContext();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -260,17 +260,31 @@ function ProfilePage() {
           </Field>
         </div>
 
-        <Button
-          type="submit"
-          size="lg"
-          disabled={saveMutation.isPending}
-        >
-          {saveMutation.isPending
-            ? "Saving..."
-            : saved
-            ? "Saved ✓"
-            : "Save profile"}
-        </Button>
+        <div className="flex gap-3">
+  <Button
+    type="submit"
+    size="lg"
+    disabled={saveMutation.isPending}
+    className="flex-1"
+  >
+    {saveMutation.isPending
+      ? "Saving..."
+      : saved
+      ? "Saved ✓"
+      : "Save Profile"}
+  </Button>
+
+  <Button
+    type="button"
+    variant="outline"
+    onClick={async () => {
+      await signOut();
+      navigate({ to: "/login" });
+    }}
+  >
+    Sign Out
+  </Button>
+</div>
       </form>
 
       <aside className="card-soft h-fit space-y-4 p-6">

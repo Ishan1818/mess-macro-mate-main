@@ -1,6 +1,8 @@
 import { MacroBar } from "@/components/MacroBar";
 import MealCategory from "./MealCategory";
 import { classifyMealItem } from "@/lib/meal-classifier";
+
+import MealReviewSection from "./MealReviewSection";
 import {
   mealTargets,
   totalsFor,
@@ -24,6 +26,16 @@ type Props = {
     oldId: string,
     newId: string,
   ) => void;
+
+  onIncreaseServing: (
+    meal: MealName,
+    itemId: string,
+  ) => void;
+
+  onDecreaseServing: (
+    meal: MealName,
+    itemId: string,
+  ) => void;
 };
 
 export default function MealCard({
@@ -32,6 +44,8 @@ export default function MealCard({
   menuItems,
   targets,
   onSwap,
+  onIncreaseServing,
+  onDecreaseServing,
 }: Props) {
   const entries = plan[meal] ?? [];
 
@@ -102,28 +116,36 @@ export default function MealCard({
             );
 
           return (
-           <MealCategory
-  key={category}
-  title={category}
-  icon={
-    {
-      Base: "🍚",
-      Protein: "💪",
-      Vegetable: "🥗",
-      Drink: "🥛",
-      Side: "🍽️",
-      Dessert: "🍰",
-    }[category]
-  }
-  meal={meal}
-  foods={foods}
-  menuItems={menuItems}
-  onSwap={(oldId, newId) => onSwap(meal, oldId, newId)}
-/>
+            <MealCategory
+              key={category}
+              title={category}
+              icon={
+                {
+                  Base: "🍚",
+                  Protein: "💪",
+                  Vegetable: "🥗",
+                  Drink: "🥛",
+                  Side: "🍽️",
+                  Dessert: "🍰",
+                }[category]
+              }
+              meal={meal}
+              foods={foods}
+              menuItems={menuItems}
+              onSwap={(oldId, newId) =>
+                onSwap(meal, oldId, newId)
+              }
+              onIncreaseServing={(itemId) =>
+                onIncreaseServing(meal, itemId)
+              }
+              onDecreaseServing={(itemId) =>
+                onDecreaseServing(meal, itemId)
+              }
+            />
           );
         })}
       </div>
-
+<MealReviewSection meal={meal} />
       <div className="mt-4 space-y-2 border-t border-border pt-4">
         <MacroBar
           label="Calories"

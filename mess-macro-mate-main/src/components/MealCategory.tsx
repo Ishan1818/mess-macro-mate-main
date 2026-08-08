@@ -5,6 +5,7 @@ type Props = {
   title: string;
   icon: string;
   meal: MealName;
+
   foods: {
     item: FoodItem;
     servings: number;
@@ -16,6 +17,14 @@ type Props = {
     oldId: string,
     newId: string,
   ) => void;
+
+  onIncreaseServing: (
+    itemId: string,
+  ) => void;
+
+  onDecreaseServing: (
+    itemId: string,
+  ) => void;
 };
 
 export default function MealCategory({
@@ -25,6 +34,8 @@ export default function MealCategory({
   foods,
   menuItems,
   onSwap,
+  onIncreaseServing,
+  onDecreaseServing,
 }: Props) {
   if (foods.length === 0) return null;
 
@@ -37,13 +48,19 @@ export default function MealCategory({
       <div className="space-y-2">
         {foods.map(({ item, servings }) => (
           <FoodCard
-  key={item.id}
-  item={item}
-  servings={servings}
-  meal={meal}
-  menuItems={menuItems}
-  onSwap={onSwap}
-/>
+            key={item.id}
+            item={item}
+            servings={servings}
+            meal={meal}
+            menuItems={menuItems}
+            onSwap={onSwap}
+            onIncreaseServing={() =>
+              onIncreaseServing(item.id)
+            }
+            onDecreaseServing={() =>
+              onDecreaseServing(item.id)
+            }
+          />
         ))}
       </div>
     </div>

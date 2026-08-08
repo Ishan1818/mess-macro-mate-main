@@ -20,6 +20,9 @@ type Props = {
     oldId: string,
     newId: string,
   ) => void;
+
+  onIncreaseServing: () => void;
+  onDecreaseServing: () => void;
 };
 
 export default function FoodCard({
@@ -28,6 +31,8 @@ export default function FoodCard({
   meal,
   menuItems,
   onSwap,
+  onIncreaseServing,
+  onDecreaseServing,
 }: Props) {
   const [open, setOpen] = useState(false);
 
@@ -60,16 +65,48 @@ export default function FoodCard({
           </span>
         </div>
 
+        {/* Serving Controls */}
+        <div className="mt-4 flex items-center justify-center gap-3">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onDecreaseServing}
+            disabled={servings <= 0.5}
+          >
+            −
+          </Button>
+
+          <div className="min-w-[70px] text-center">
+            <div className="text-lg font-semibold">
+              {servings}
+            </div>
+
+            <div className="text-xs text-muted-foreground">
+              servings
+            </div>
+          </div>
+
+          <Button
+  variant="outline"
+  size="icon"
+  onClick={() => {
+    console.log("clicked");
+    onIncreaseServing();
+  }}
+>
+  +
+</Button>
+        </div>
+
         <Button
           variant="outline"
           size="sm"
-          className="mt-3 w-full"
+          className="mt-4 w-full"
           onClick={() => setOpen(true)}
         >
           🔄 Swap
         </Button>
       </div>
-
 
       <SwapDialog
         open={open}

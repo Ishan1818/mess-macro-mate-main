@@ -79,8 +79,16 @@ function Home() {
   const profile = profileQuery.data;
   const menu = menuQuery.data;
 
-  const { targets, plan, generating, dayTotals, generate, swap } =
-    useMealPlanner(profile, menu);
+  const {
+  targets,
+  plan,
+  generating,
+  dayTotals,
+  generate,
+  swap,
+  increaseServing,
+  decreaseServing,
+} = useMealPlanner(profile, menu);
 
   if (authLoading) {
     return <Loading />;
@@ -99,15 +107,15 @@ function Home() {
             : "Failed to load today's menu."
         }
       >
-        {profileQuery.isSuccess && !profile ? (
-          <WelcomeCard />
-        ) : !menu ? (
-          <Loading message="Loading today's menu..." />
-        ) : menu.items.length === 0 ? (
-          <EmptyMenu />
-        ) : !profile || !targets ? (
-          <WelcomeCard />
-        ) : (
+        {!profile ? (
+  <WelcomeCard />
+) : !menu ? (
+  <Loading message="Loading today's menu..." />
+) : menu.items.length === 0 ? (
+  <EmptyMenu />
+) : !targets ? (
+  <Loading />
+) : (
           <div className="space-y-6">
             <DashboardHeader
               name={profile.name}
@@ -118,26 +126,34 @@ function Home() {
               onGenerate={generate}
             />
 
-            {plan && (
-              <PlanQualityCard actual={dayTotals} target={targets} />
-            )}
+            {plan ? (
+              <>
+                <PlanQualityCard actual={dayTotals} target={targets} />
 
-            {!plan ? (
-              <p className="rounded-xl border border-dashed border-border p-8 text-center text-muted-foreground">
-                Building your plan…
-              </p>
+                <div className="grid gap-5 lg:grid-cols-3">
+                  {MEALS.map((meal) => (
+                    <MealCard
+  key={meal}
+  meal={meal}
+  plan={plan}
+  menuItems={menu.items}
+  targets={targets}
+  onSwap={swap}
+  onIncreaseServing={increaseServing}
+  onDecreaseServing={decreaseServing}
+/>
+                  ))}
+                </div>
+              </>
             ) : (
-              <div className="grid gap-5 lg:grid-cols-3">
-                {MEALS.map((meal) => (
-                  <MealCard
-                    key={meal}
-                    meal={meal}
-                    plan={plan}
-                    menuItems={menu.items}
-                    targets={targets}
-                    onSwap={swap}
-                  />
-                ))}
+              <div className="rounded-xl border border-dashed border-border p-8 text-center">
+                <p className="text-muted-foreground">
+                  No meal plan generated for today.
+                </p>
+
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Tap <strong>Generate Plan</strong> to create today's recommendations.
+                </p>
               </div>
             )}
           </div>
