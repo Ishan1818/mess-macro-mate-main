@@ -1,10 +1,20 @@
-export type MealName = "breakfast" | "lunch" | "dinner";
+export type MealName =
+  | "breakfast"
+  | "lunch"
+  | "high_tea"
+  | "dinner";
 
-export const MEALS: MealName[] = ["breakfast", "lunch", "dinner"];
+export const MEALS: MealName[] = [
+  "breakfast",
+  "lunch",
+  "high_tea",
+  "dinner",
+];
 
 export const MEAL_LABEL: Record<MealName, string> = {
   breakfast: "Breakfast",
   lunch: "Lunch",
+  high_tea: "High Tea",
   dinner: "Dinner",
 };
 

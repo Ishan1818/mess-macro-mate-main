@@ -1,12 +1,13 @@
 import { MacroBar } from "@/components/MacroBar";
 import MealCategory from "./MealCategory";
 import { classifyMealItem } from "@/lib/meal-classifier";
-
 import MealReviewSection from "./MealReviewSection";
+
 import {
   mealTargets,
   totalsFor,
 } from "@/lib/nutrition";
+
 import {
   MEAL_LABEL,
   type FoodItem,
@@ -20,6 +21,9 @@ type Props = {
   plan: MealPlan;
   menuItems: FoodItem[];
   targets: Targets;
+
+  includeHighTea: boolean;
+  onToggleHighTea: () => void;
 
   onSwap: (
     meal: MealName,
@@ -43,17 +47,35 @@ export default function MealCard({
   plan,
   menuItems,
   targets,
+  includeHighTea,
+  onToggleHighTea,
   onSwap,
   onIncreaseServing,
   onDecreaseServing,
 }: Props) {
+  const isHighTea = meal === "high_tea";
+
   const entries = plan[meal] ?? [];
 
-  const totals = totalsFor(entries, menuItems);
+  const totals = totalsFor(
+    entries,
+    menuItems,
+  );
 
-  const goal = mealTargets(targets, meal);
+  const goal = mealTargets(
+    targets,
+    meal,
+    includeHighTea,
+  );
 
-  if (entries.length === 0) {
+  /*
+   * High Tea gets a card even when disabled.
+   * The other meals keep their existing behavior.
+   */
+  if (
+    entries.length === 0 &&
+    (!isHighTea || includeHighTea)
+  ) {
     return (
       <section className="card-soft flex flex-col p-5">
         <h2 className="text-lg font-semibold">
@@ -67,18 +89,89 @@ export default function MealCard({
     );
   }
 
+  /*
+   * High Tea disabled state.
+   */
+  if (isHighTea && !includeHighTea) {
+    return (
+      <section className="card-soft flex flex-col p-5">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-lg font-semibold">
+            {MEAL_LABEL[meal]}
+          </h2>
+
+          <button
+            type="button"
+            role="switch"
+            aria-checked={false}
+            onClick={onToggleHighTea}
+            className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full bg-muted transition-colors"
+          >
+            <span className="inline-block h-5 w-5 translate-x-0.5 rounded-full bg-background shadow-sm transition-transform" />
+          </button>
+        </div>
+
+        <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-lg bg-secondary/50 p-3">
+          <input
+            type="checkbox"
+            checked={false}
+            onChange={onToggleHighTea}
+            className="h-4 w-4 accent-primary"
+          />
+
+          <span className="text-sm font-medium">
+            I'm having High Tea
+          </span>
+        </label>
+
+        <p className="mt-4 text-sm text-muted-foreground">
+          High Tea is currently excluded from your meal plan.
+        </p>
+      </section>
+    );
+  }
+
   return (
     <section className="card-soft flex flex-col p-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <h2 className="text-lg font-semibold">
           {MEAL_LABEL[meal]}
         </h2>
 
-        <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium">
-          {Math.round(totals.calories)} kcal ·{" "}
-          {Math.round(totals.protein)}g P
-        </span>
+        <div className="flex items-center gap-2">
+          {isHighTea && (
+            <button
+              type="button"
+              role="switch"
+              aria-checked={true}
+              onClick={onToggleHighTea}
+              className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full bg-primary transition-colors"
+            >
+              <span className="inline-block h-5 w-5 translate-x-5 rounded-full bg-background shadow-sm transition-transform" />
+            </button>
+          )}
+
+          <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium">
+            {Math.round(totals.calories)} kcal ·{" "}
+            {Math.round(totals.protein)}g P
+          </span>
+        </div>
       </div>
+
+      {isHighTea && (
+        <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-lg bg-secondary/50 p-3">
+          <input
+            type="checkbox"
+            checked={true}
+            onChange={onToggleHighTea}
+            className="h-4 w-4 accent-primary"
+          />
+
+          <span className="text-sm font-medium">
+            I'm having High Tea
+          </span>
+        </label>
+      )}
 
       <div className="mt-4 space-y-4">
         {(
@@ -112,7 +205,8 @@ export default function MealCard({
                 servings: number;
               } =>
                 x !== null &&
-                classifyMealItem(x.item) === category,
+                classifyMealItem(x.item) ===
+                  category,
             );
 
           return (
@@ -133,19 +227,29 @@ export default function MealCard({
               foods={foods}
               menuItems={menuItems}
               onSwap={(oldId, newId) =>
-                onSwap(meal, oldId, newId)
+                onSwap(
+                  meal,
+                  oldId,
+                  newId,
+                )
               }
               onIncreaseServing={(itemId) =>
-                onIncreaseServing(meal, itemId)
+                onIncreaseServing(
+                  meal,
+                  itemId,
+                )
               }
               onDecreaseServing={(itemId) =>
-                onDecreaseServing(meal, itemId)
+                onDecreaseServing(
+                  meal,
+                  itemId,
+                )
               }
             />
           );
         })}
       </div>
-<MealReviewSection meal={meal} />
+
       <div className="mt-4 space-y-2 border-t border-border pt-4">
         <MacroBar
           label="Calories"
@@ -161,6 +265,8 @@ export default function MealCard({
           tone="protein"
         />
       </div>
+
+      <MealReviewSection meal={meal} />
     </section>
   );
 }

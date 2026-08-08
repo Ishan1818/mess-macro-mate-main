@@ -24,7 +24,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Enter your goals, upload today's mess menu, and get an optimized breakfast, lunch and dinner plan that hits your calories and protein.",
+          "Enter your goals, upload today's mess menu, and get an optimized breakfast, lunch, high tea and dinner plan that hits your calories and protein.",
       },
       {
         property: "og:title",
@@ -40,9 +40,15 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-function Loading({ message = "Loading..." }: { message?: string }) {
+function Loading({
+  message = "Loading...",
+}: {
+  message?: string;
+}) {
   return (
-    <div className="py-20 text-center text-muted-foreground">{message}</div>
+    <div className="py-20 text-center text-muted-foreground">
+      {message}
+    </div>
   );
 }
 
@@ -52,6 +58,7 @@ function EmptyMenu() {
       <p className="text-muted-foreground">
         Today's mess menu hasn't been uploaded yet.
       </p>
+
       <Link
         to="/menu"
         className="mt-3 inline-block text-sm font-medium text-primary hover:underline"
@@ -63,12 +70,19 @@ function EmptyMenu() {
 }
 
 function Home() {
-  const { session, loading: authLoading } = useAuthContext();
+  const {
+    session,
+    loading: authLoading,
+  } = useAuthContext();
 
   const profileQuery = useQuery({
-    queryKey: ["profile", session?.user.id],
+    queryKey: [
+      "profile",
+      session?.user.id,
+    ],
     enabled: !!session,
-    queryFn: () => getProfile(session!.user.id),
+    queryFn: () =>
+      getProfile(session!.user.id),
   });
 
   const menuQuery = useQuery({
@@ -80,15 +94,20 @@ function Home() {
   const menu = menuQuery.data;
 
   const {
-  targets,
-  plan,
-  generating,
-  dayTotals,
-  generate,
-  swap,
-  increaseServing,
-  decreaseServing,
-} = useMealPlanner(profile, menu);
+    targets,
+    plan,
+    generating,
+    dayTotals,
+    includeHighTea,
+    generate,
+    toggleHighTea,
+    swap,
+    increaseServing,
+    decreaseServing,
+  } = useMealPlanner(
+    profile,
+    menu,
+  );
 
   if (authLoading) {
     return <Loading />;
@@ -98,9 +117,14 @@ function Home() {
     <ProtectedRoute>
       <QueryState
         loading={
-          (!!session && profileQuery.isLoading) || menuQuery.isLoading
+          (!!session &&
+            profileQuery.isLoading) ||
+          menuQuery.isLoading
         }
-        error={!!profileQuery.error || !!menuQuery.error}
+        error={
+          !!profileQuery.error ||
+          !!menuQuery.error
+        }
         errorMessage={
           profileQuery.error
             ? "Failed to load profile."
@@ -108,14 +132,14 @@ function Home() {
         }
       >
         {!profile ? (
-  <WelcomeCard />
-) : !menu ? (
-  <Loading message="Loading today's menu..." />
-) : menu.items.length === 0 ? (
-  <EmptyMenu />
-) : !targets ? (
-  <Loading />
-) : (
+          <WelcomeCard />
+        ) : !menu ? (
+          <Loading message="Loading today's menu..." />
+        ) : menu.items.length === 0 ? (
+          <EmptyMenu />
+        ) : !targets ? (
+          <Loading />
+        ) : (
           <div className="space-y-6">
             <DashboardHeader
               name={profile.name}
@@ -128,20 +152,33 @@ function Home() {
 
             {plan ? (
               <>
-                <PlanQualityCard actual={dayTotals} target={targets} />
+                <PlanQualityCard
+                  actual={dayTotals}
+                  target={targets}
+                />
 
                 <div className="grid gap-5 lg:grid-cols-3">
                   {MEALS.map((meal) => (
                     <MealCard
-  key={meal}
-  meal={meal}
-  plan={plan}
-  menuItems={menu.items}
-  targets={targets}
-  onSwap={swap}
-  onIncreaseServing={increaseServing}
-  onDecreaseServing={decreaseServing}
-/>
+                      key={meal}
+                      meal={meal}
+                      plan={plan}
+                      menuItems={menu.items}
+                      targets={targets}
+                      includeHighTea={
+                        includeHighTea
+                      }
+                      onToggleHighTea={
+                        toggleHighTea
+                      }
+                      onSwap={swap}
+                      onIncreaseServing={
+                        increaseServing
+                      }
+                      onDecreaseServing={
+                        decreaseServing
+                      }
+                    />
                   ))}
                 </div>
               </>
@@ -152,7 +189,12 @@ function Home() {
                 </p>
 
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Tap <strong>Generate Plan</strong> to create today's recommendations.
+                  Tap{" "}
+                  <strong>
+                    Generate Plan
+                  </strong>{" "}
+                  to create today's
+                  recommendations.
                 </p>
               </div>
             )}
