@@ -43,22 +43,23 @@ avoid degenerate results. The lowest-scoring combination wins.
 
 ## Structure
 
+```
 src/
-├── routes/ # index, menu, profile, login, about
-├── components/ # MealCard, FoodCard, DashboardHeader...
-│ └── ui/ # shadcn/ui primitives
+├── routes/          # index, menu, profile, login, about
+├── components/       # MealCard, FoodCard, DashboardHeader...
+│   └── ui/            # shadcn/ui primitives
 ├── lib/
-│ ├── nutrition.ts # BMR/TDEE calculation + meal plan optimizer
-│ ├── mess-types.ts # Core types (FoodItem, Profile, MealPlan...)
-│ ├── meal-classifier.ts
-│ ├── plan-quality.ts
-│ ├── review.ts # Meal review time-window logic
-│ ├── swapMeal.ts
-│ └── api/ # Supabase queries (food, menu, profile, reviews, logs)
+│   ├── nutrition.ts   # BMR/TDEE calculation + meal plan optimizer
+│   ├── mess-types.ts  # Core types (FoodItem, Profile, MealPlan...)
+│   ├── meal-classifier.ts
+│   ├── plan-quality.ts
+│   ├── review.ts       # Meal review time-window logic
+│   ├── swapMeal.ts
+│   └── api/             # Supabase queries (food, menu, profile, reviews, logs)
 ├── hooks/
-│ └── useMealPlanner.ts
-└── auth/ # Supabase auth provider + protected routes
-
+│   └── useMealPlanner.ts
+└── auth/               # Supabase auth provider + protected routes
+```
 
 ## Routes
 
