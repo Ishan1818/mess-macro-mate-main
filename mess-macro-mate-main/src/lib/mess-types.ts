@@ -61,16 +61,6 @@ export interface PlanEntry {
 
 export type MealPlan = Record<MealName, PlanEntry[]>;
 
-/* ---------- NEW ---------- */
-
-export interface MealOption {
-  id: number;
-  score: number;
-  plan: MealPlan;
-}
-
-/* ------------------------- */
-
 export interface DayLog {
   date: string;
   water: number;

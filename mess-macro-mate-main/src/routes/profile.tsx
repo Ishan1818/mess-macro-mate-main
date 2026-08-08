@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import ProtectedRoute from "@/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MacroBar } from "@/components/MacroBar";
@@ -47,7 +48,7 @@ const DEFAULTS: Profile = {
   gender: "male",
   heightCm: 175,
   weightKg: 70,
-  goalWeightKg: 68,
+  goalWeightKg: 70,
   goal: "lose",
   activity: "moderate",
 };
@@ -106,7 +107,7 @@ function ProfilePage() {
 
     if (!session) return;
 
-    saveMutation.mutate(form);
+    saveMutation.mutate({ ...form, goalWeightKg: form.weightKg });
   };
 
   if (profileQuery.isLoading) {
@@ -126,6 +127,7 @@ function ProfilePage() {
   }
 
   return (
+    <ProtectedRoute>
     <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
       <form
         onSubmit={submit}
@@ -206,17 +208,6 @@ function ProfilePage() {
               value={form.weightKg}
               onChange={(e) =>
                 set("weightKg", Number(e.target.value))
-              }
-            />
-          </Field>
-
-          <Field label="Goal weight (kg)">
-            <Input
-              type="number"
-              step="0.1"
-              value={form.goalWeightKg}
-              onChange={(e) =>
-                set("goalWeightKg", Number(e.target.value))
               }
             />
           </Field>
@@ -326,6 +317,7 @@ function ProfilePage() {
         </div>
       </aside>
     </div>
+    </ProtectedRoute>
   );
 }
 function Field({

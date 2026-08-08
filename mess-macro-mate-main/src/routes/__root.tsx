@@ -1,6 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider } from "@/auth/AuthProvider";
+import { AuthProvider, useAuthContext } from "@/auth/AuthProvider";
 import MobileNav from "@/components/MobileNav";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabase";
 import {
   Outlet,
   Link,
@@ -124,11 +126,29 @@ const navLinks = [
   { to: "/profile", label: "Profile" },
 ] as const;
 
+function LogoutButton() {
+  const { session } = useAuthContext();
+
+  if (!session) return null;
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="text-muted-foreground"
+      onClick={() => supabase.auth.signOut()}
+    >
+      Log out
+    </Button>
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthProvider>
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-30 hidden border-b border-border/70 bg-background/85 backdrop-blur md:block">
           <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
@@ -150,17 +170,17 @@ function RootComponent() {
                   {l.label}
                 </Link>
               ))}
+              <LogoutButton />
             </nav>
           </div>
         </header>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <main className="mx-auto max-w-5xl px-4 pt-6 pb-32 md:pb-20">
-          <AuthProvider>
-  <Outlet />
-  <MobileNav />
-</AuthProvider>
+          <Outlet />
+          <MobileNav />
         </main>
       </div>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

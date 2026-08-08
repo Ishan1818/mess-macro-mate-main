@@ -1,8 +1,9 @@
 import { supabase } from "@/lib/supabase";
+import { getLocalDateKey } from "@/lib/date";
 import type { DailyMenu, FoodItem } from "@/lib/mess-types";
 
 export async function getTodayMenu(): Promise<DailyMenu> {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getLocalDateKey();
 
   const { data, error } = await supabase
     .from("daily_menu")

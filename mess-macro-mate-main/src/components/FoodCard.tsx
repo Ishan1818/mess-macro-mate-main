@@ -70,11 +70,12 @@ export default function FoodCard({
         </Button>
       </div>
 
+
       <SwapDialog
         open={open}
         onOpenChange={setOpen}
         current={item}
-        meal={meal}
+        currentServings={servings}
         items={menuItems.filter((i) => i.meal === meal)}
         onSelect={(newId) => onSwap(item.id, newId)}
       />
